@@ -16,12 +16,14 @@ module Path.Extended
     -- ** Query Parameters
   , setQuery
   , addQuery
+  , (<&>)
   , addQueries
   , delQuery
   , getQuery
     -- ** Fragment
   , setFragment
   , addFragment
+  , (<#>)
   , delFragment
   , module P
   ) where
@@ -95,6 +97,11 @@ addQuery :: QueryParam -> Location b t -> Location b t
 addQuery q (Location js pa fe qp fr) =
   Location js pa fe (qp ++ [q]) fr
 
+(<&>) :: Location b t -> QueryParam -> Location b t
+(<&>) = flip addQuery
+
+infixl 7 <&>
+
 addQueries :: [QueryParam] -> Location b t -> Location b t
 addQueries qs (Location js pa fe qs' fr) =
   Location js pa fe (qs' ++ qs) fr
@@ -113,6 +120,11 @@ setFragment fr (Location js pa fe qp _) =
 
 addFragment :: String -> Location b t -> Location b t
 addFragment fr = setFragment (Just fr)
+
+(<#>) :: Location b t -> String -> Location b t
+(<#>) = flip addFragment
+
+infixl 8 <#>
 
 delFragment :: Location b t -> Location b t
 delFragment = setFragment Nothing
