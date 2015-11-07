@@ -4,8 +4,7 @@ Author:                 Athan Clark <athan.clark@gmail.com>
 Maintainer:             Athan Clark <athan.clark@gmail.com>
 License:                BSD3
 License-File:           LICENSE
-Synopsis:               Chris Done's path library, enriched with query parameters,
-                        fragment information, file extensions, and relative parent accessors.
+Synopsis:               Chris Done's path library, enriched with URL-related goodies.
 -- Description:
 Cabal-Version:          >= 1.10
 Build-Type:             Simple

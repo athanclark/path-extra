@@ -28,7 +28,7 @@ module Path.Extended
 import Path
 
 
--- | A location for some base and type.
+-- | A location for some base and type - internally uses @Path@.
 data Location b t = Location
   { locParentJumps :: Int -- ^ only when b ~ Rel
   , locPath        :: Path b t
@@ -53,6 +53,7 @@ delParent l@(Location j pa fe qp fr)
   | otherwise = Location (j-1) pa fe qp fr
 
 
+-- | This should be your entry point for creating a @Location@.
 fromPath :: Path b t -> Location b t
 fromPath pa = Location 0 pa Nothing [] Nothing
 
