@@ -23,9 +23,11 @@ module Path.Extended
   , setFragment
   , addFragment
   , delFragment
+  , module P
   ) where
 
-import Path
+import Path as P
+import Data.List (intercalate)
 
 
 -- | A location for some base and type - internally uses @Path@.
@@ -35,10 +37,21 @@ data Location b t = Location
   , locFileExt     :: Maybe String -- ^ only when t ~ File
   , locQueryParams :: [QueryParam]
   , locFragment    :: Maybe String
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Ord)
+
+instance Show (Location b t) where
+  show (Location js pa fe qp fr) =
+    let loc = concat (replicate js "../")
+           ++ toFilePath pa
+           ++ maybe "" (\f -> "." ++ f) fe
+        query = case qp of
+                  [] -> ""
+                  qs -> "?" ++ intercalate "&" (map go qs)
+          where
+            go (k,mv) = k ++ maybe "" (\v -> "=" ++ v) mv
+    in loc ++ query ++ maybe "" (\f -> "#" ++ f) fr
 
 type QueryParam = (String, Maybe String)
-
 
 
 
