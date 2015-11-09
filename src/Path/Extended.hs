@@ -1,3 +1,7 @@
+{-# LANGUAGE
+    MultiParamTypeClasses
+  #-}
+
 module Path.Extended
   ( -- * Types
     Location
@@ -28,8 +32,14 @@ module Path.Extended
   , module P
   ) where
 
-import Path as P
+import Path as P hiding ((</>))
+import qualified Path as P ((</>))
+
 import Data.List (intercalate)
+
+
+class PathAppend right base type' where
+  (</>) :: Path base Dir -> right Rel type' -> right base type'
 
 
 -- | A location for some base and type - internally uses @Path@.
@@ -40,6 +50,36 @@ data Location b t = Location
   , locQueryParams :: [QueryParam]
   , locFragment    :: Maybe String
   } deriving (Eq, Ord)
+
+
+instance PathAppend Path Abs Dir where
+  (</>) = (P.</>)
+
+instance PathAppend Path Abs File where
+  (</>) = (P.</>)
+
+instance PathAppend Path Rel Dir where
+  (</>) = (P.</>)
+
+instance PathAppend Path Rel File where
+  (</>) = (P.</>)
+
+instance PathAppend Location Abs Dir where
+  l </> (Location ps pa fe qp fr) =
+    Location ps ((P.</>) l pa) fe qp fr
+
+instance PathAppend Location Abs File where
+  l </> (Location ps pa fe qp fr) =
+    Location ps ((P.</>) l pa) fe qp fr
+
+instance PathAppend Location Rel Dir where
+  l </> (Location ps pa fe qp fr) =
+    Location ps ((P.</>) l pa) fe qp fr
+
+instance PathAppend Location Rel File where
+  l </> (Location ps pa fe qp fr) =
+    Location ps ((P.</>) l pa) fe qp fr
+
 
 instance Show (Location b t) where
   show (Location js pa fe qp fr) =
