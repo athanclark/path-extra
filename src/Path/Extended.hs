@@ -1,31 +1,37 @@
 {-# LANGUAGE
     MultiParamTypeClasses
+  , FunctionalDependencies
   #-}
 
 module Path.Extended
   ( -- * Types
     Location
   , QueryParam
-    -- * Combinators
-    -- ** Parent Accessors
-  , addParent
+  , -- * Classes
+    ToPath (..)
+  , ToLocation (..)
+  , -- * Combinators
+    -- ** Append
+    PathAppend (..)
+  , -- ** Parent Accessors
+    addParent
   , delParent
-    -- ** Path
-  , fromPath
-    -- ** File Extensions
-  , setFileExt
+  , -- ** Path
+    fromPath
+  , -- ** File Extensions
+    setFileExt
   , addFileExt
   , delFileExt
   , getFileExt
-    -- ** Query Parameters
-  , setQuery
+  , -- ** Query Parameters
+    setQuery
   , addQuery
   , (<&>)
   , addQueries
   , delQuery
   , getQuery
-    -- ** Fragment
-  , setFragment
+  , -- ** Fragment
+    setFragment
   , addFragment
   , (<#>)
   , delFragment
@@ -36,10 +42,22 @@ import Path as P hiding ((</>))
 import qualified Path as P ((</>))
 
 import Data.List (intercalate)
+import Control.Monad.Catch
 
 
 class PathAppend right base type' where
   (</>) :: Path base Dir -> right Rel type' -> right base type'
+
+
+-- | Convenience typeclass for symbolic, stringless routes - make an instance
+-- for your own data type to use your constructors as route-referencing symbols.
+class ToPath sym base type' | sym -> base type' where
+  toPath :: MonadThrow m => sym -> m (Path base type')
+
+-- | Convenience typeclass for symbolic, stringless routes - make an instance
+-- for your own data type to use your constructors as route-referencing symbols.
+class ToLocation sym base type' | sym -> base type' where
+  toLocation :: MonadThrow m => sym -> m (Location base type')
 
 
 -- | A location for some base and type - internally uses @Path@.
