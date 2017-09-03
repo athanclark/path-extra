@@ -18,7 +18,6 @@ module Path.Extended
   , delParent
   , -- ** Path
     fromPath
-  , locPath
   , -- ** File Extensions
     setFileExt
   , addFileExt
