@@ -36,6 +36,7 @@ module Path.Extended
   , addFragment
   , (<#>)
   , delFragment
+  , getFragment
   , module P
   ) where
 
@@ -188,3 +189,5 @@ infixl 8 <#>
 delFragment :: Location b t -> Location b t
 delFragment = setFragment Nothing
 
+getFragment :: Location b t -> Maybe String
+getFragment (Location _ _ _ _ x) = x
