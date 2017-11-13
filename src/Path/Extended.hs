@@ -5,7 +5,7 @@
 
 module Path.Extended
   ( -- * Types
-    Location
+    Location (..)
   , QueryParam
   , -- * Classes
     ToPath (..)
