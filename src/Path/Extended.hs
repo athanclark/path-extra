@@ -43,7 +43,6 @@ import Path as P hiding ((</>))
 import qualified Path as P ((</>))
 
 import Data.List (intercalate)
-import Control.Monad.Catch
 
 
 class PathAppend right base type' where
@@ -53,12 +52,12 @@ class PathAppend right base type' where
 -- | Convenience typeclass for symbolic, stringless routes - make an instance
 -- for your own data type to use your constructors as route-referencing symbols.
 class ToPath sym base type' | sym -> base type' where
-  toPath :: MonadThrow m => sym -> m (Path base type')
+  toPath :: sym -> Path base type'
 
 -- | Convenience typeclass for symbolic, stringless routes - make an instance
 -- for your own data type to use your constructors as route-referencing symbols.
 class ToLocation sym base type' | sym -> base type' where
-  toLocation :: MonadThrow m => sym -> m (Location base type')
+  toLocation :: sym -> Location base type'
 
 
 -- | A location for some base and type - internally uses @Path@.

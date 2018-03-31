@@ -1,23 +1,36 @@
-Name:                   path-extra
-Version:                0.0.6
-Author:                 Athan Clark <athan.clark@gmail.com>
-Maintainer:             Athan Clark <athan.clark@gmail.com>
-License:                BSD3
-License-File:           LICENSE
-Synopsis:               Chris Done's path library, enriched with URL-related goodies.
--- Description:
-Cabal-Version:          >= 1.10
-Build-Type:             Simple
+-- This file has been generated from package.yaml by hpack version 0.21.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 62e1b7988f106072305bb8c297fa007230c07e2c53d8527bafc18ca12953e612
 
-Library
-  Default-Language:     Haskell2010
-  HS-Source-Dirs:       src
-  GHC-Options:          -Wall
-  Exposed-Modules:      Path.Extended
-  Build-Depends:        base >= 4.6 && < 5
-                      , exceptions
-                      , path
+name:           path-extra
+version:        0.1.0
+description:    Please see the README on Github at <https://github.com/githubuser/localcooking-db#readme>
+author:         Athan Clark
+maintainer:     athan.clark@localcooking.com
+copyright:      Copyright (c) 2018 Local Cooking Inc.
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
 
-Source-Repository head
-  Type:                 git
-  Location:             https://github.com/athanclark/path-extra.git
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: git://git.localcooking.com/tooling/path-extra.git
+
+library
+  exposed-modules:
+      Path.Extended
+  other-modules:
+      Paths_path_extra
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      base >=4.8 && <5
+    , path
+  default-language: Haskell2010
