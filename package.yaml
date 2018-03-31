@@ -5,6 +5,8 @@ license:             BSD3
 author:              "Athan Clark"
 maintainer:          "athan.clark@localcooking.com"
 copyright:           "Copyright (c) 2018 Local Cooking Inc."
+category:            System, Filesystem, Web
+synopsis:            Some extensions to Chris Done's path library, for use with urlpath and attoparsec-uri.
 
 extra-source-files:
 - README.md
