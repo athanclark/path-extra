@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c64c7dde5791e0aea4a198329610b4c836af91e6274867cd837d88e93114eab2
+-- hash: ef6199423093f720df1ad58097710e484ee8d805792c0f83655265f54fd65ded
 
 name:           path-extra
-version:        0.1.1
+version:        0.1.2
 synopsis:       Some extensions to Chris Done's path library, for use with urlpath and attoparsec-uri.
 description:    Please see the README on Github at <https://github.com/githubuser/localcooking-db#readme>
 category:       System, Filesystem, Web
@@ -13,7 +13,7 @@ homepage:       https://github.com/athanclark/path-extra#readme
 bug-reports:    https://github.com/athanclark/path-extra/issues
 author:         Athan Clark
 maintainer:     athan.clark@localcooking.com
-copyright:      Copyright (c) 2018 Local Cooking Inc.
+copyright:      Copyright (c) 2018 Athan Clark
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

@@ -1,10 +1,10 @@
 name:                path-extra
-version:             0.1.1
+version:             0.1.2
 github:              "athanclark/path-extra"
 license:             BSD3
 author:              "Athan Clark"
 maintainer:          "athan.clark@localcooking.com"
-copyright:           "Copyright (c) 2018 Local Cooking Inc."
+copyright:           "Copyright (c) 2018 Athan Clark"
 category:            System, Filesystem, Web
 synopsis:            Some extensions to Chris Done's path library, for use with urlpath and attoparsec-uri.
 
