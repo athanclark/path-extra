@@ -10,6 +10,8 @@ module Path.Extended
   , -- * Classes
     ToPath (..)
   , ToLocation (..)
+  , FromPath (..)
+  , FromLocation (..)
   , -- * Combinators
     -- ** Append
     PathAppend (..)
@@ -36,7 +38,6 @@ module Path.Extended
   , (<#>)
   , delFragment
   , getFragment
-  , module P
   ) where
 
 import Path as P hiding ((</>))
@@ -58,6 +59,13 @@ class ToPath sym base type' | sym -> base type' where
 -- for your own data type to use your constructors as route-referencing symbols.
 class ToLocation sym base type' | sym -> base type' where
   toLocation :: sym -> Location base type'
+
+class FromPath sym base type' | sym -> base type' where
+  parsePath :: Path base type' -> Either String sym
+
+class FromLocation sym base type' | sym -> base type' where
+  parseLocation :: Location base type' -> Either String sym
+
 
 
 -- | A location for some base and type - internally uses @Path@.

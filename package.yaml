@@ -1,6 +1,6 @@
 name:                path-extra
-version:             0.1.0
-git:                 "git://git.localcooking.com/tooling/path-extra.git"
+version:             0.1.1
+github:              "athanclark/path-extra"
 license:             BSD3
 author:              "Athan Clark"
 maintainer:          "athan.clark@localcooking.com"
