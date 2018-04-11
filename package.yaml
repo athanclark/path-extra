@@ -25,7 +25,25 @@ ghc-options:
 
 dependencies:
 - base >= 4.8 && < 5
+- attoparsec
 - path
+- text
 
 library:
   source-dirs: src
+
+tests:
+  path-extra-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - path-extra
+    - path
+    - tasty
+    - tasty-quickcheck
+    - QuickCheck
+    - quickcheck-instances

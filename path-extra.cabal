@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 373b686527cf454dee43b179ea2c6733f768eb0bd0e1a6701bc6fddbe12fccc0
+-- hash: c64c7dde5791e0aea4a198329610b4c836af91e6274867cd837d88e93114eab2
 
 name:           path-extra
 version:        0.1.1
@@ -35,6 +35,28 @@ library
       src
   ghc-options: -Wall
   build-depends:
-      base >=4.8 && <5
+      attoparsec
+    , base >=4.8 && <5
     , path
+    , text
+  default-language: Haskell2010
+
+test-suite path-extra-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_path_extra
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      QuickCheck
+    , attoparsec
+    , base >=4.8 && <5
+    , path
+    , path-extra
+    , quickcheck-instances
+    , tasty
+    , tasty-quickcheck
+    , text
   default-language: Haskell2010

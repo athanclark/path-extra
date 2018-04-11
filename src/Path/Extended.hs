@@ -1,6 +1,9 @@
 {-# LANGUAGE
     MultiParamTypeClasses
   , FunctionalDependencies
+  , NamedFieldPuns
+  , ScopedTypeVariables
+  , OverloadedStrings
   #-}
 
 module Path.Extended
@@ -38,12 +41,22 @@ module Path.Extended
   , (<#>)
   , delFragment
   , getFragment
+  , -- ** Parsers
+    locationAbsDirParser
+  , locationAbsFileParser
   ) where
 
 import Path as P hiding ((</>))
 import qualified Path as P ((</>))
 
+import Prelude hiding (takeWhile)
 import Data.List (intercalate)
+import Data.Attoparsec.Text (Parser, char, takeWhile, takeWhile1, sepBy, sepBy1)
+import qualified Data.Text as T
+import Data.Monoid ((<>))
+import Control.Applicative (Alternative (many), optional)
+import Control.Exception (SomeException)
+import Control.Monad (void)
 
 
 class PathAppend right base type' where
@@ -76,6 +89,99 @@ data Location b t = Location
   , locQueryParams :: [QueryParam]
   , locFragment    :: Maybe String
   } deriving (Eq, Ord)
+
+
+
+
+locationAbsDirParser :: Parser (Location Abs Dir)
+locationAbsDirParser = do
+  locPath <- absDir
+  locQueryParams <- do
+    xs <- optional $ do
+      let val = T.unpack <$> takeWhile (`notElem` ['=','&','#'])
+      void (char '?')
+      let kv = do
+            k <- val
+            mV <- optional $ do
+              void (char '=')
+              val
+            pure (k,mV)
+      kv `sepBy` void (char '&')
+    case xs of
+      Nothing -> pure []
+      Just xs' -> pure xs'
+  locFragment <- optional $ do
+    void (char '#')
+    xs <- takeWhile (const True)
+    pure (T.unpack xs)
+  pure Location
+    { locParentJumps = 0
+    , locPath
+    , locFileExt = Nothing
+    , locQueryParams
+    , locFragment
+    }
+  where
+    divider = void (char '/')
+    chunk = takeWhile1 (`notElem` ['?','&','/','#'])
+    absDir :: Parser (Path Abs Dir)
+    absDir = do
+      divider
+      xs <- many (chunk <* divider)
+      case parseAbsDir ( case xs of
+                           [] -> "/"
+                           _  -> T.unpack ("/" <> T.intercalate "/" xs <> "/")
+                       ) of
+        Left (e :: SomeException) -> fail (show e)
+        Right x -> pure x
+
+
+locationAbsFileParser :: Parser (Location Abs File)
+locationAbsFileParser = do
+  (locPath, locFileExt) <- absFile
+  locQueryParams <- do
+    xs <- optional $ do
+      let val = T.unpack <$> takeWhile (`notElem` ['=','&','#'])
+      void (char '?')
+      let kv = do
+            k <- val
+            mV <- optional $ do
+              void (char '=')
+              val
+            pure (k,mV)
+      kv `sepBy` void (char '&')
+    case xs of
+      Nothing -> pure []
+      Just xs' -> pure xs'
+  locFragment <- optional $ do
+    void (char '#')
+    xs <- takeWhile (const True)
+    pure (T.unpack xs)
+  pure Location
+    { locParentJumps = 0
+    , locPath
+    , locFileExt
+    , locQueryParams
+    , locFragment
+    }
+  where
+    divider = void (char '/')
+    chunk = takeWhile1 (`notElem` ['?','&','/','#'])
+    absFile :: Parser (Path Abs File, Maybe String)
+    absFile = do
+      divider
+      xs <- chunk `sepBy1` divider
+      let (withoutFE,withFE) = T.breakOn "." (last xs)
+          xs' = init xs <> [withoutFE]
+      path <- case parseAbsFile (T.unpack ("/" <> T.intercalate "/" xs')) of
+        Left (e :: SomeException) -> fail (show e)
+        Right x -> pure x
+      pure
+        ( path
+        , if T.null withFE
+          then Nothing
+          else Just $ T.unpack $ T.drop 1 withFE
+        )
 
 
 instance PathAppend Path Abs Dir where
