@@ -1,5 +1,5 @@
 name:                path-extra
-version:             0.2.0
+version:             0.3.0
 github:              "athanclark/path-extra"
 license:             BSD3
 author:              "Athan Clark"
@@ -17,7 +17,7 @@ ghc-options:
   - -Wall
 
 dependencies:
-- base >= 4.8 && < 5
+- base >= 4.11 && < 5
 - attoparsec
 - path >= 0.9
 - text

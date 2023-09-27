@@ -1,31 +1,5 @@
-# path-REST
+# path-extra
 
-TODO: Write description here
-
-## Installation
-
-TODO: Write installation instructions here
-
-## Usage
-
-### Creating `x`
-
-TODO: Write usage instructions here
-
-### Combining `x`
-
-TODO: Write usage instructions here
-
-### Consuming `x`
-
-TODO: Write usage instructions here
-
-## How to run tests
-
-```
-cabal configure --enable-tests && cabal build && cabal test
-```
-
-## Contributing
-
-TODO: Write contribution instructions here
+This package tries to add a few convenience functions to the
+[https://hackage.haskell.org/package/path](path) library, namely the idea of a "Location" -
+basically just a path, but with query string and fragment details.

@@ -11,6 +11,7 @@
 module Path.Extended
   ( -- * Types
     Location (..)
+  , LocationPath (..)
   , QueryParam
   , -- * Classes
     ToPath (..)
@@ -19,9 +20,10 @@ module Path.Extended
   , FromLocation (..)
   , -- * Combinators
     -- ** Path
-    fromAbsDir
-  , fromAbsFile
-  , prepend
+    fromDir
+  , fromFile
+  , prependAbs
+  , prependRel
   , -- ** Query Parameters
     setQuery
   , addQuery
@@ -36,19 +38,18 @@ module Path.Extended
   , delFragment
   , getFragment
   , -- ** Parser & Printer
-    locationParser
+    locationAbsParser
+  , locationRelParser
   , printLocation
   ) where
 
 -- import Path as P hiding ((</>))
-import Path (Path, Abs, Dir, File, (</>), toFilePath, parseAbsFile, parseAbsDir, stripProperPrefix, absdir)
+import Path (Path, Abs, Rel, Dir, File, (</>), toFilePath, parseAbsFile, parseAbsDir, parseRelDir, parseRelFile, stripProperPrefix, absdir, reldir)
 
 import Prelude hiding (takeWhile)
-import Data.List (intercalate)
-import Data.Attoparsec.Text (Parser, char, takeWhile, takeWhile1, sepBy, sepBy1, many1)
+import Data.Attoparsec.Text (Parser, char, takeWhile, takeWhile1, sepBy)
 import qualified Data.Text as T
-import Data.Monoid ((<>))
-import Control.Applicative (Alternative (many), (<|>), optional)
+import Control.Applicative ((<|>), optional)
 import Control.Exception (SomeException)
 import Control.Monad (void)
 import GHC.Generics (Generic)
@@ -62,58 +63,106 @@ class ToPath sym base type' | sym -> base type' where
 
 -- | Convenience typeclass for symbolic, stringless routes - make an instance
 -- for your own data type to use your constructors as route-referencing symbols.
-class ToLocation sym where
-  toLocation :: sym -> Location
+class ToLocation sym base | sym -> base where
+  toLocation :: sym -> Location base
 
 class FromPath sym base type' | sym -> base type' where
   parsePath :: Path base type' -> Either String sym
 
-class FromLocation sym where
-  parseLocation :: Location -> Either String sym
+class FromLocation sym base | sym -> base where
+  parseLocation :: Location base -> Either String sym
 
 
+data LocationPath base
+  = Dir (Path base Dir)
+  | File (Path base File)
+  deriving (Eq, Ord, Generic)
 
 -- | A location for some base and type - internally uses @Path@.
-data Location = Location
-  { locPath        :: Either (Path Abs Dir) (Path Abs File)
+data Location base = Location
+  { locPath        :: LocationPath base
   , locQueryParams :: [QueryParam]
   , locFragment    :: Maybe String
   } deriving (Eq, Ord, Generic)
 
 
 
-fromAbsDir :: Path Abs Dir -> Location
-fromAbsDir path = Location
-  { locPath = Left path
+fromDir :: Path base Dir -> Location base
+fromDir path = Location
+  { locPath = Dir path
   , locQueryParams = []
   , locFragment = Nothing
   }
 
-fromAbsFile :: Path Abs File -> Location
-fromAbsFile path = Location
-  { locPath = Right path
+fromFile :: Path base File -> Location base
+fromFile path = Location
+  { locPath = File path
   , locQueryParams = []
   , locFragment = Nothing
   }
 
 
-locationParser :: Parser Location
-locationParser = do
+locationAbsParser :: Parser (Location Abs)
+locationAbsParser = do
   divider
   locPath <- do
     xs <- chunk `sepBy` divider
     case xs of
-      [] -> pure (Left [absdir|/|])
+      [] -> pure $ Dir [absdir|/|]
       _ -> do
         let dir = do
               divider
               case parseAbsDir (T.unpack ("/" <> T.intercalate "/" xs <> "/")) of
                 Left (e :: SomeException) -> fail (show e)
-                Right x -> pure (Left x)
+                Right x -> pure (Dir x)
             file =
               case parseAbsFile (T.unpack ("/" <> T.intercalate "/" xs)) of
                 Left (e :: SomeException) -> fail (show e)
-                Right x -> pure (Right x)
+                Right x -> pure (File x)
+        dir <|> file
+  locQueryParams <- do
+    xs <- optional $ do
+      let val = T.unpack <$> takeWhile (`notElem` ['=','&','#'])
+      void (char '?')
+      let kv = do
+            k <- val
+            mV <- optional $ do
+              void (char '=')
+              val
+            pure (k,mV)
+      kv `sepBy` void (char '&')
+    case xs of
+      Nothing -> pure []
+      Just xs' -> pure xs'
+  locFragment <- optional $ do
+    void (char '#')
+    xs <- takeWhile (const True)
+    pure (T.unpack xs)
+  pure Location
+    { locPath
+    , locQueryParams
+    , locFragment
+    }
+  where
+    divider = void (char '/')
+    chunk = takeWhile1 (`notElem` ['?','&','/','#'])
+
+locationRelParser :: Parser (Location Rel)
+locationRelParser = do
+  locPath <- do
+    xs <- chunk `sepBy` divider
+    case xs of
+      [] -> pure $ Dir [reldir|./|]
+      _ -> do
+        let dir = do
+              divider
+              case parseRelDir (T.unpack (T.intercalate "/" xs <> "/")) of
+                Left (e :: SomeException) -> fail (show e)
+                Right x -> pure (Dir x)
+            file =
+              case parseRelFile (T.unpack (T.intercalate "/" xs)) of
+                Left (e :: SomeException) -> fail (show e)
+                Right x -> pure (File x)
         dir <|> file
   locQueryParams <- do
     xs <- optional $ do
@@ -143,22 +192,36 @@ locationParser = do
     chunk = takeWhile1 (`notElem` ['?','&','/','#'])
 
 
-prepend :: Path Abs Dir -> Location -> Location
-prepend path l@Location{locPath} = l
-  { locPath = case locPath of
-      Left d -> case stripProperPrefix [absdir|/|] d of
-        Nothing -> error "impossible state"
-        Just d' -> Left (path </> d')
-      Right f -> case stripProperPrefix [absdir|/|] f of
-        Nothing -> error "impossible state"
-        Just f' -> Right (path </> f')
-  }
+prependAbs :: Path Abs Dir -> Location Abs -> Location Abs
+prependAbs path l@Location{locPath} =
+  case locPath of
+    File f ->
+      l { locPath = case stripProperPrefix [absdir|/|] f of
+            Nothing -> undefined
+            Just f' -> File (path </> f')
+        }
+    Dir d ->
+      l { locPath = case stripProperPrefix [absdir|/|] d of
+            Nothing -> undefined
+            Just d' -> Dir (path </> d')
+        }
+
+prependRel :: Path Rel Dir -> Location Rel -> Location Rel
+prependRel path l@Location{locPath} =
+  case locPath of
+    File f ->
+      l { locPath = File (path </> f)
+        }
+    Dir d ->
+      l { locPath = Dir (path </> d)
+        }
 
 
-
-printLocation :: Location -> T.Text
+printLocation :: Location base -> T.Text
 printLocation (Location pa qp fr) =
-  let loc = either toFilePath toFilePath pa
+  let loc = case pa of
+        Dir x -> toFilePath x
+        File x -> toFilePath x
       query = case qp of
                 [] -> ""
                 qs -> "?" <> T.intercalate "&" (go <$> qs)
@@ -170,46 +233,46 @@ type QueryParam = (String, Maybe String)
 
 
 
-setQuery :: [QueryParam] -> Location -> Location
+setQuery :: [QueryParam] -> Location base -> Location base
 setQuery qp (Location pa _ fr) =
   Location pa qp fr
 
 -- | Appends a query parameter
-addQuery :: QueryParam -> Location -> Location
+addQuery :: QueryParam -> Location base -> Location base
 addQuery q (Location pa qp fr) =
   Location pa (qp ++ [q]) fr
 
-(<&>) :: Location -> QueryParam -> Location
+(<&>) :: Location base -> QueryParam -> Location base
 (<&>) = flip addQuery
 
 infixl 7 <&>
 
-addQueries :: [QueryParam] -> Location -> Location
+addQueries :: [QueryParam] -> Location base -> Location base
 addQueries qs (Location pa qs' fr) =
   Location pa (qs' ++ qs) fr
 
-delQuery :: Location -> Location
+delQuery :: Location base -> Location base
 delQuery = setQuery []
 
-getQuery :: Location -> [QueryParam]
+getQuery :: Location base -> [QueryParam]
 getQuery (Location _ qp _) =
   qp
 
 
-setFragment :: Maybe String -> Location -> Location
+setFragment :: Maybe String -> Location base -> Location base
 setFragment fr (Location pa qp _) =
   Location pa qp fr
 
-addFragment :: String -> Location -> Location
+addFragment :: String -> Location base -> Location base
 addFragment fr = setFragment (Just fr)
 
-(<#>) :: Location -> String -> Location
+(<#>) :: Location base -> String -> Location base
 (<#>) = flip addFragment
 
 infixl 8 <#>
 
-delFragment :: Location -> Location
+delFragment :: Location base -> Location base
 delFragment = setFragment Nothing
 
-getFragment :: Location -> Maybe String
+getFragment :: Location base -> Maybe String
 getFragment (Location _ _ x) = x
