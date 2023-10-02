@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 960287c20bb6f39c6a9ae6c22985774c943b509f75dfa7674b2b2c9c4b6951ac
+-- hash: 552bb5afa168a001a775ec2384529a0909290298efd15fc11c3f3bef78d322c3
 
 name:           path-extra
-version:        0.3.0
+version:        0.3.1
 synopsis:       URLs without host information
 description:    Please see the README on Github at <https://github.com/athanclark/path-extra#readme>
 category:       System, Filesystem, Web
