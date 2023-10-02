@@ -8,7 +8,7 @@
 module Main where
 
 import Path (parseAbsDir, parseAbsFile, Path, Abs, Dir, File)
-import Path.Extended (Location (..), QueryParam, locationParser, printLocation)
+import Path.Extended (Location (..), QueryParam, locationAbsParser, printLocation, LocationPath (..))
 
 import qualified Data.Text as T
 import Data.Monoid ((<>))
@@ -25,12 +25,12 @@ import Test.QuickCheck.Instances ()
 
 
 newtype ArbitraryLocation = ArbitraryLocation
-  { getArbitraryLocation :: Location
+  { getArbitraryLocation :: Location Abs
   } deriving (Eq, Show)
 
 instance Arbitrary ArbitraryLocation where
   arbitrary = do
-    locPath <- oneof [Left <$> arbitraryAbsDir, Right <$> arbitraryAbsFile]
+    locPath <- oneof [Dir <$> arbitraryAbsDir, File <$> arbitraryAbsFile]
     locQueryParams <- arbitraryQueryParams
     locFragment <- arbitraryFragment
     pure $ ArbitraryLocation Location
@@ -89,12 +89,10 @@ instance Arbitrary ArbitraryLocation where
                  Right path -> path
 
 
-deriving instance Show Location
-
 
 printParseIso :: ArbitraryLocation -> Bool
 printParseIso (ArbitraryLocation loc) =
-  Right loc == parseOnly locationParser (printLocation loc)
+  Right loc == parseOnly locationAbsParser (printLocation loc)
 
 
 

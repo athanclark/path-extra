@@ -76,14 +76,14 @@ class FromLocation sym base | sym -> base where
 data LocationPath base
   = Dir (Path base Dir)
   | File (Path base File)
-  deriving (Eq, Ord, Generic)
+  deriving (Eq, Ord, Generic, Show)
 
 -- | A location for some base and type - internally uses @Path@.
 data Location base = Location
   { locPath        :: LocationPath base
   , locQueryParams :: [QueryParam]
   , locFragment    :: Maybe String
-  } deriving (Eq, Ord, Generic)
+  } deriving (Eq, Ord, Generic, Show)
 
 
 
